@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using ApiApp.Misc;
 using Microsoft.Extensions.Configuration;
 
 namespace ApiApp.Interfaces
@@ -14,11 +14,13 @@ namespace ApiApp.Interfaces
 
         string EnvironmentName { get; }
 
-        string AppEnvironment { get; }
-
         bool UseDeveloperExceptionPage { get; }
 
-        string LogDir { get; }
+        string LogRootPath { get; }
+
+        JwtInfo JwtInfo { get; }
+
+        IAppSecurity AppSecurity { get; }
 
         #endregion
 

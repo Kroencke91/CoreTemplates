@@ -19,16 +19,14 @@ namespace ApiApp.Pipeline
 
         public AppHostingEnvironment(IHostingEnvironment hostingEnvironment)
         {
-            HostingEnvironment = hostingEnvironment;
+            InitializeFromHostingEnvironment(hostingEnvironment);
 
-            InitializeHostingEnvironment();
+            InitializeAppHostingEnvironment();
         }
 
         #endregion
 
         #region Properties
-
-        private IHostingEnvironment HostingEnvironment { get; }
 
         #region IHostingEnvironment Properties
 
@@ -36,37 +34,37 @@ namespace ApiApp.Pipeline
         // Summary:
         //     Gets or sets the name of the environment. This property is automatically set
         //     by the host to the value of the "ASPNETCORE_ENVIRONMENT" environment variable.
-        public string EnvironmentName { get { return HostingEnvironment.EnvironmentName; } set { HostingEnvironment.EnvironmentName = value; } }
+        public string EnvironmentName { get; private set; }
 
         //
         // Summary:
         //     Gets or sets the name of the application. This property is automatically set
         //     by the host to the assembly containing the application entry point.
-        public string ApplicationName { get { return HostingEnvironment.ApplicationName; } set { HostingEnvironment.ApplicationName = value; } }
+        public string ApplicationName { get; private set; }
 
         //
         // Summary:
         //     Gets or sets the absolute path to the directory that contains the web-servable
         //     application content files.
-        public string WebRootPath { get { return HostingEnvironment.WebRootPath; } set { HostingEnvironment.WebRootPath = value; } }
+        public string WebRootPath { get; private set; }
 
         //
         // Summary:
         //     Gets or sets an Microsoft.Extensions.FileProviders.IFileProvider pointing at
         //     Microsoft.AspNetCore.Hosting.IHostingEnvironment.WebRootPath.
-        public IFileProvider WebRootFileProvider { get { return HostingEnvironment.WebRootFileProvider; } set { HostingEnvironment.WebRootFileProvider = value; } }
+        public  IFileProvider WebRootFileProvider { get; private set; }
 
         //
         // Summary:
         //     Gets or sets the absolute path to the directory that contains the application
         //     content files.
-        public string ContentRootPath { get { return HostingEnvironment.ContentRootPath; } set { HostingEnvironment.ContentRootPath = value; } }
+        public string ContentRootPath { get; private set; }
 
         //
         // Summary:
         //     Gets or sets an Microsoft.Extensions.FileProviders.IFileProvider pointing at
         //     Microsoft.AspNetCore.Hosting.IHostingEnvironment.ContentRootPath.
-        public IFileProvider ContentRootFileProvider { get { return HostingEnvironment.ContentRootFileProvider; } set { HostingEnvironment.ContentRootFileProvider = value; } }
+        public IFileProvider ContentRootFileProvider { get; private set; }
 
         #endregion
 
@@ -82,8 +80,24 @@ namespace ApiApp.Pipeline
 
         #region Private Methods
 
-        private void InitializeHostingEnvironment()
+        private void InitializeFromHostingEnvironment(IHostingEnvironment hostingEnvironment)
         {
+            EnvironmentName = hostingEnvironment.EnvironmentName;
+
+            ApplicationName = hostingEnvironment.ApplicationName;
+
+            WebRootPath = hostingEnvironment.WebRootPath;
+
+            WebRootFileProvider = hostingEnvironment.WebRootFileProvider;
+
+            ContentRootPath = hostingEnvironment.ContentRootPath;
+
+            ContentRootFileProvider = hostingEnvironment.ContentRootFileProvider;
+        }
+
+        private void InitializeAppHostingEnvironment()
+        {
+
         }
 
         #endregion

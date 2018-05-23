@@ -1,9 +1,14 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using ApiApp.Interfaces;
 
 namespace ApiApp.Controllers
 {
@@ -14,9 +19,18 @@ namespace ApiApp.Controllers
         #endregion
 
         #region Constructors
+
+        protected ControllerBase(IAppInfo appInfo)
+        {
+            AppInfo = appInfo;
+        }
+
         #endregion
 
         #region Properties
+
+        protected IAppInfo AppInfo { get; }
+
         #endregion
 
         #region Public Methods
@@ -28,12 +42,12 @@ namespace ApiApp.Controllers
         {
             var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
 
-            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+            return Encoding.UTF8.GetString(base64EncodedBytes);
         }
 
         protected string Base64Encode(string plainText)
         {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 
             return Convert.ToBase64String(plainTextBytes);
         }

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 
 using ApiApp.Interfaces;
+using ApiApp.Misc;
 
 namespace ApiApp.Pipeline
 {
@@ -22,7 +23,7 @@ namespace ApiApp.Pipeline
         {
             Configuration = configuration;
 
-            InitializeConfig();
+            InitializeAppConfig();
         }
 
         #endregion
@@ -33,11 +34,13 @@ namespace ApiApp.Pipeline
 
         public string EnvironmentName { get; private set; }
 
-        public string AppEnvironment { get; private set; }
-
         public bool UseDeveloperExceptionPage { get; private set; }
 
-        public string LogDir { get; private set; }
+        public string LogRootPath { get; private set; }
+
+        public JwtInfo JwtInfo { get; private set; }
+
+        public IAppSecurity AppSecurity { get; private set; }
 
         #region IConfiguration Properties
 
@@ -101,13 +104,21 @@ namespace ApiApp.Pipeline
 
         #region Private Methods
 
-        private void InitializeConfig()
+        private void InitializeAppConfig()
         {
             EnvironmentName = Configuration["Startup:EnvironmentName"];
 
-            AppEnvironment = Configuration["Startup:AppEnvironment"];
-
             UseDeveloperExceptionPage = Convert.ToBoolean(Configuration["StartUp:UseDeveloperExceptionPage"]);
+
+            LogRootPath = Configuration["LogRootPath"];
+
+            var issuer = Configuration["JWT:Issuer"];
+
+            var audience = Configuration["JWT:Audience"];
+
+            JwtInfo = new JwtInfo(issuer, audience);
+
+            AppSecurity = new AppSecurity(this);
         }
 
         #endregion

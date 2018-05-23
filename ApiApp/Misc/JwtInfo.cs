@@ -3,22 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ApiApp.Utils
+namespace ApiApp.Misc
 {
-    public class JwtUtil
+    public class JwtInfo
     {
         #region Class Variables
         #endregion
 
         #region Constructors
 
-        public JwtUtil()
+        public JwtInfo(string issuer, string audience)
         {
+            Issuer = issuer;
+
+            Audience = audience;
         }
 
         #endregion
 
         #region Properties
+
+        public string Issuer { get; }
+
+        public string Audience { get; }
+
         #endregion
 
         #region Public Methods
