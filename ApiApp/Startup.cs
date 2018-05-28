@@ -101,7 +101,7 @@ namespace ApiApp
 
             //_app.UseStatusCodePages();
 
-            _app.UseMiddleware<ResponseWrapper>();
+            _app.UseMiddleware<ApiResponseWrapper>();
 
             _app.UseAuthentication();
 
