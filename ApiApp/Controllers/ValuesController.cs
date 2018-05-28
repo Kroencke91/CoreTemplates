@@ -7,23 +7,27 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using ApiApp.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiApp.Controllers.V_1_0
 {
     [Produces("application/json")]
     [ApiVersion(CV.ApiVersions.V_1_0)]
-    [Route("api/v{version:apiVersion}/[controller]/[action]")]
+    [Route("api/v{version:apiVersion}")]
     public class ValuesController : ControllerBase
     {
         #region Class Variables
+
+        private static int _hits; //Just for fun...NOT thread-safe!!
+
         #endregion
 
         #region Constructors
 
-        public ValuesController(IAppInfo appInfo)
-            : base(appInfo)
+        public ValuesController(IHttpContextAccessor contextAccessor)
+            : base(contextAccessor)
         {
-
+            _hits += 1;
         }
 
         #endregion
@@ -33,10 +37,25 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Public Methods
 
-        [HttpGet]
+        [HttpGet("[action]")]
         public IActionResult Ping()
         {
-            return Ok($"{AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+            return Ok($"{_hits} - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        }
+
+        [Authorize]
+        [HttpGet("[action]")]
+        public IActionResult AuthTest()
+        {
+            var userIdClaim = SiteUser.Claims.FirstOrDefault(); 
+
+            return Ok($"{_hits} - {userIdClaim?.Type} - {userIdClaim?.Value} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        }
+
+        [HttpGet("[action]")]
+        public IActionResult BadRequestTest()
+        {
+            return BadRequest($"{_hits} - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - Bad Reuqest Test - {DateTime.Now}");
         }
 
         #endregion

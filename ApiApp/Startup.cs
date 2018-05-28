@@ -17,6 +17,8 @@ using Microsoft.IdentityModel.Tokens;
 using ApiApp.Interfaces;
 using ApiApp.Misc;
 using ApiApp.Pipeline;
+using ApiApp.Controllers;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiApp
 {
@@ -28,7 +30,7 @@ namespace ApiApp
 
         private IAppHostingEnvironment _env;
 
-        private IApplicationBuilder _app;
+        private static IApplicationBuilder _app;
 
         #endregion
 
@@ -54,7 +56,6 @@ namespace ApiApp
         #endregion
 
         #region Properties
-
         #endregion
 
         #region Public Methods
@@ -76,6 +77,8 @@ namespace ApiApp
                         }
                 );
 
+            services.AddMemoryCache();
+
             services.AddMvc();
 
             services.AddApiVersioning();
@@ -83,7 +86,7 @@ namespace ApiApp
             services.AddSingleton<IAppInfo>(new AppInfo(_config, _env));
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IMemoryCache memoryCache)
         {
             _app = app;
 
@@ -91,20 +94,29 @@ namespace ApiApp
             {
                 _app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                _app.UseExceptionHandler();
+            }
 
-            _app.UseStatusCodePages();
+            //_app.UseStatusCodePages();
+
+            _app.UseMiddleware<ResponseWrapper>();
 
             _app.UseAuthentication();
 
             _app.UseMvc();
 
             _app.ApplicationServices.GetService<IAppInfo>().AddApp(_app);
+
+            ControllerBase.InitMemoryCache(memoryCache);
+
+            ControllerBase.InitAppInfo(_app.ApplicationServices.GetService<IAppInfo>());
         }
 
         #endregion
 
-        #region Private Methods
-        
+        #region Private Methods        
         #endregion
     }
 }

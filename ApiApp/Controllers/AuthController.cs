@@ -14,12 +14,13 @@ using ApiApp.Extensions;
 using ApiApp.Interfaces;
 using ApiApp.Misc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiApp.Controllers.V_1_0
 {
     [Produces("application/json")]
     [ApiVersion(CV.ApiVersions.V_1_0)]
-    [Route("api/v{version:apiVersion}/[controller]/[action]")]
+    [Route("api/v{version:apiVersion}")]
     public sealed class AuthController : ControllerBase
     {
         #region Class Variables
@@ -30,10 +31,10 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Constructors
 
-        public AuthController(IAppInfo appInfo) 
-            : base(appInfo)
+        public AuthController(IHttpContextAccessor contextAccessor)
+            : base(contextAccessor)
         {
-            _security = appInfo.AppSecurity;
+            _security = AppInfo.AppSecurity;
         }
 
         #endregion
@@ -43,19 +44,19 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Public Methods
 
-        [HttpPost]
+        [HttpPost("[action]")]
         public JsonResult Authenticate()
         {
-            var basicToken = Request.BasicToken();
+            var (Token, ErrMsg) = Request.BasicToken();
 
-            if (!string.IsNullOrEmpty(basicToken.ErrMsg))
+            if (!string.IsNullOrEmpty(ErrMsg))
             {
                 Response.StatusCode = 401;
 
-                return new JsonResult(new AuthToken(basicToken.ErrMsg));
+                return new JsonResult(new AuthToken(ErrMsg));
             }
-            
-            var identity = _security.GetClaimsIdentityFromToken(Base64Decode(basicToken.Token));
+
+            var identity = _security.GetClaimsIdentityFromTokenAsync(MemoryCache, Base64Decode(Token));
 
             if (identity.Claims.Count() == 0)
             {

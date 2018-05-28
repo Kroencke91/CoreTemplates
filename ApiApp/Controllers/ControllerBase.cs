@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using ApiApp.Interfaces;
+using ApiApp.Misc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiApp.Controllers
 {
@@ -16,24 +18,52 @@ namespace ApiApp.Controllers
     public abstract class ControllerBase : Controller
     {
         #region Class Variables
+
+        private static IAppInfo _appInfo;
+
+        private static IMemoryCache _memoryCache;
+
         #endregion
 
         #region Constructors
 
-        protected ControllerBase(IAppInfo appInfo)
+        protected ControllerBase(IHttpContextAccessor contextAccessor)
         {
-            AppInfo = appInfo;
+            ContextAccessor = contextAccessor;
+
+            SiteUser = new SiteUser(contextAccessor.HttpContext.User);
         }
 
         #endregion
 
         #region Properties
 
-        protected IAppInfo AppInfo { get; }
+        protected IHttpContextAccessor ContextAccessor { get; private set; }
+
+        protected IAppInfo AppInfo => _appInfo;
+
+        protected ISiteUser SiteUser { get; private set; }
+
+        protected IMemoryCache MemoryCache => _memoryCache;
 
         #endregion
 
         #region Public Methods
+
+        internal static void InitMemoryCache(IMemoryCache memoryCache)
+        {
+            if (_memoryCache != null) throw new ApplicationException("MemoryCache already intialized!");
+
+            _memoryCache = memoryCache;
+        }
+
+        internal static void InitAppInfo(IAppInfo appInfo)
+        {
+            if (_appInfo != null) throw new ApplicationException("AppInfo already intialized!");
+
+            _appInfo = appInfo;
+        }
+
         #endregion
 
         #region Protected Methods

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ApiApp.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ApiApp.Misc
@@ -51,14 +52,20 @@ namespace ApiApp.Misc
 
         #region Public Methods
 
-        public ClaimsIdentity GetClaimsIdentityFromToken(string token)
+        public ClaimsIdentity GetClaimsIdentityFromTokenAsync(IMemoryCache memoryCache, string token)
         {
-            var identity = new ClaimsIdentity();
+            if (!memoryCache.TryGetValue(token, out ClaimsIdentity identity))
+            {
+                identity = new ClaimsIdentity();
 
-            //TODO: Use token to validate request & add claims to identity
-            var claim = new Claim("UserId", "9876");
+                identity.AddClaims(GetClaimsAsync(token));
 
-            identity.AddClaim(claim);
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                                                // TODO: Make SlidingExpiration length a config value
+                                                .SetSlidingExpiration(TimeSpan.FromMinutes(20));
+
+                memoryCache.Set(token, identity, cacheEntryOptions);
+            }
 
             return identity;
         }
@@ -104,6 +111,24 @@ namespace ApiApp.Misc
         private TimeSpan GetTokenEpirationDuration()
         {
             return TimeSpan.FromHours(1); //TODO: GetTokenEpirationDuration()
+        }
+
+        private List<Claim> GetClaimsAsync(string token)
+        {
+            var claims = new List<Claim>();
+
+            var task = Task.Run(() =>
+            {
+
+                //TODO: Use token to validate request & add claims to identity
+                var claim = new Claim("UserId", "9876");
+
+                claims.Add(claim);
+            });
+
+            task.Wait();
+
+            return claims;
         }
 
         #endregion

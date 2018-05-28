@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace ApiApp.Interfaces
 
         #region Public Methods
 
-        ClaimsIdentity GetClaimsIdentityFromToken(string token);
+        ClaimsIdentity GetClaimsIdentityFromTokenAsync(IMemoryCache memoryCache, string token);
 
         string GenerateToken(ClaimsIdentity claimsIdentity);
 
