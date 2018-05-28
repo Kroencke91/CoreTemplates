@@ -121,9 +121,9 @@ namespace ApiApp.Misc
             {
 
                 //TODO: Use token to validate request & add claims to identity
-                var claim = new Claim("UserId", "9876");
+                //var claim = new Claim("UserId", "9876");
 
-                claims.Add(claim);
+                //claims.Add(claim);
             });
 
             task.Wait();

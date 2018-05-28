@@ -15,6 +15,7 @@ using ApiApp.Interfaces;
 using ApiApp.Misc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
+using ApiApp.Pipeline;
 
 namespace ApiApp.Controllers.V_1_0
 {
@@ -45,24 +46,20 @@ namespace ApiApp.Controllers.V_1_0
         #region Public Methods
 
         [HttpPost("[action]")]
-        public JsonResult Authenticate()
+        public IActionResult Authenticate()
         {
             var (Token, ErrMsg) = Request.BasicToken();
 
             if (!string.IsNullOrEmpty(ErrMsg))
             {
-                Response.StatusCode = 401;
-
-                return new JsonResult(new AuthToken(ErrMsg));
+                return Unauthorized(new UnauthorizedError(ErrMsg));
             }
 
             var identity = _security.GetClaimsIdentityFromTokenAsync(MemoryCache, Base64Decode(Token));
 
             if (identity.Claims.Count() == 0)
             {
-                Response.StatusCode = 401;
-
-                return new JsonResult(new AuthToken("Authorization Failed"));
+                return Unauthorized(new UnauthorizedError("Authorization Failed"));
             }
 
             var token = _security.GenerateToken(identity);
