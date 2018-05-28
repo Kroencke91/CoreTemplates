@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace ApiApp.Pipeline
 {
-    public class ResponseWrapper
+    public class ApiResponseWrapper
     {
         private readonly RequestDelegate _next;
 
-        public ResponseWrapper(RequestDelegate next)
+        public ApiResponseWrapper(RequestDelegate next)
         {
             _next = next;
         }
