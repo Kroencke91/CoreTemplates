@@ -2,25 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.String;
 
-namespace ApiApp.Extensions
+namespace ApiApp.Misc
 {
-    public static class StringExtensions
+    public class NullException : ApplicationException
     {
         #region Class Variables
         #endregion
 
         #region Constructors
+
+        public NullException()
+            : base("The ExceptionContext.Exception is null")
+        {
+        }
+
         #endregion
 
         #region Properties
         #endregion
 
         #region Public Methods
-
-        public static string NullIfEmpty(this string value) => IsNullOrEmpty(value) ? null : value;
-
         #endregion
 
         #region Private Methods

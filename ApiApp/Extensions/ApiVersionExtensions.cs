@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.String;
 
 namespace ApiApp.Extensions
 {
-    public static class StringExtensions
+    public static class ApiVersionExtensions
     {
         #region Class Variables
         #endregion
@@ -19,7 +19,16 @@ namespace ApiApp.Extensions
 
         #region Public Methods
 
-        public static string NullIfEmpty(this string value) => IsNullOrEmpty(value) ? null : value;
+        public static ApiVersion CreateApiVersion(string value)
+        {
+            var parts = value.Split('.');
+
+            var major = Convert.ToInt32(parts[0]);
+
+            var minor = Convert.ToInt32(parts[1]);
+
+            return new ApiVersion(major, minor);
+        }
 
         #endregion
 

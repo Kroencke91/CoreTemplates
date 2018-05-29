@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <Folder Include="Exception\" />
+    <Folder Include="Logging\" />
     <Folder Include="Utils\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>

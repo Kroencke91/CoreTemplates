@@ -1,26 +1,28 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.String;
 
-namespace ApiApp.Extensions
+namespace ApiApp.DataAccess
 {
-    public static class StringExtensions
+    public class ValuesContext : DbContext
     {
         #region Class Variables
         #endregion
 
         #region Constructors
+
+        public ValuesContext(DbContextOptions<ValuesContext> options) : base(options)
+        {
+        }
+
         #endregion
 
         #region Properties
         #endregion
 
         #region Public Methods
-
-        public static string NullIfEmpty(this string value) => IsNullOrEmpty(value) ? null : value;
-
         #endregion
 
         #region Private Methods

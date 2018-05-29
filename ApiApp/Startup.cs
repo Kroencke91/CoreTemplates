@@ -14,11 +14,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
+using ApiApp.Extensions;
 using ApiApp.Interfaces;
 using ApiApp.Misc;
 using ApiApp.Pipeline;
 using ApiApp.Controllers;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using ApiApp.DataAccess;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiApp
 {
@@ -81,18 +86,38 @@ namespace ApiApp
 
                 services.AddMemoryCache();
 
+                //TODO: connection
+                var connection = @"Server=HPENVYLT2017\MSSQLSERVER2017;Database=Sandbox;Trusted_Connection=True;";
+
+                services.AddDbContext<ValuesContext>(options => options.UseSqlServer(connection));
+
                 services.AddMvc(config =>
                             {
                                 config.Filters.Add(typeof(ApiExceptionFilter));
                             });
 
-                services.AddApiVersioning();
+                services.AddApiVersioning(
+                            o =>
+                            {
+                                o.ReportApiVersions = true;
+
+                                o.AssumeDefaultVersionWhenUnspecified = true;
+
+                                o.DefaultApiVersion = ApiVersionExtensions.CreateApiVersion(CV.ApiVersions.V_1_0);
+
+                                //TODO: Use refelection to add these?
+                                o.Conventions.Controller<Controllers.V_1_0.AuthController>().HasApiVersion(ApiVersionExtensions.CreateApiVersion(CV.ApiVersions.V_1_0));
+
+                                o.Conventions.Controller<Controllers.V_1_0.ValuesController>().HasApiVersion(ApiVersionExtensions.CreateApiVersion(CV.ApiVersions.V_1_0));
+                            }
+                );
 
                 services.AddSingleton<IAppInfo>(new AppInfo(_config, _env));
             }
             catch (Exception ex)
             {
                 //TODO: Handle ConfigureServices exception
+                throw;
             }
         }
 
@@ -123,13 +148,14 @@ namespace ApiApp
 
                 _app.ApplicationServices.GetService<IAppInfo>().AddApp(_app);
 
-                ControllerBase.InitMemoryCache(memoryCache);
+                Controllers.ControllerBase.InitMemoryCache(memoryCache);
 
-                ControllerBase.InitAppInfo(_app.ApplicationServices.GetService<IAppInfo>());
+                Controllers.ControllerBase.InitAppInfo(_app.ApplicationServices.GetService<IAppInfo>());
             }
             catch (Exception ex)
             {
                 //TODO: handle Configure exception
+                throw;
             }
         }
 

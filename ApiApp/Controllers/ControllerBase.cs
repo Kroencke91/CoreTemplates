@@ -11,10 +11,14 @@ using Microsoft.AspNetCore.Mvc;
 using ApiApp.Interfaces;
 using ApiApp.Misc;
 using Microsoft.Extensions.Caching.Memory;
+using ApiApp.Pipeline;
 
 namespace ApiApp.Controllers
 {
     [Produces("application/json")]
+    [Route("api/v{version:apiVersion}")]
+    //[ValidateAntiForgeryToken]
+    [ValidateModel]
     public abstract class ControllerBase : Controller
     {
         #region Class Variables
@@ -22,16 +26,22 @@ namespace ApiApp.Controllers
         private static IAppInfo _appInfo;
 
         private static IMemoryCache _memoryCache;
+        
+        private readonly string _requestedApiVersion;
 
         #endregion
 
         #region Constructors
 
-        protected ControllerBase(IHttpContextAccessor contextAccessor)
+        protected ControllerBase(IHttpContextAccessor contextAccessor, IValuesContext valuesContext)
         {
             ContextAccessor = contextAccessor;
 
-            SiteUser = new SiteUser(contextAccessor.HttpContext.User);
+            ValuesContext = valuesContext;
+
+            _requestedApiVersion = ContextAccessor.HttpContext.GetRequestedApiVersion().ToString();
+
+            SiteUser = new SiteUser(ContextAccessor.HttpContext.User);
         }
 
         #endregion
@@ -39,6 +49,10 @@ namespace ApiApp.Controllers
         #region Properties
 
         protected IHttpContextAccessor ContextAccessor { get; private set; }
+
+        protected IValuesContext ValuesContext { get; private set; }
+
+        protected string RequestedApiVersion => _requestedApiVersion;
 
         protected IAppInfo AppInfo => _appInfo;
 
@@ -69,7 +83,7 @@ namespace ApiApp.Controllers
             return new Pipeline.UnauthorizedResult(error);
         }
 
-        public override UnauthorizedResult Unauthorized()
+        public override Microsoft.AspNetCore.Mvc.UnauthorizedResult Unauthorized()
         {
             throw new NotImplementedException();
         }

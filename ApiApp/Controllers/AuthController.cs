@@ -19,9 +19,7 @@ using ApiApp.Pipeline;
 
 namespace ApiApp.Controllers.V_1_0
 {
-    [Produces("application/json")]
-    [ApiVersion(CV.ApiVersions.V_1_0)]
-    [Route("api/v{version:apiVersion}")]
+    //[ApiVersionNeutral]
     public sealed class AuthController : ControllerBase
     {
         #region Class Variables
@@ -32,8 +30,8 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Constructors
 
-        public AuthController(IHttpContextAccessor contextAccessor)
-            : base(contextAccessor)
+        public AuthController(IHttpContextAccessor contextAccessor, IValuesContext valuesContext)
+            : base(contextAccessor, valuesContext)
         {
             _security = AppInfo.AppSecurity;
         }
@@ -45,15 +43,17 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Public Methods
 
-        [HttpGet("[action]")]
-        public IActionResult Error()
-        {
-            return Ok($"Error - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
-        }
+        //[HttpGet("[action]")]
+        //public IActionResult Error()
+        //{
+        //    return Ok($"Error - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        //}
 
         [HttpPost("[action]")]
         public IActionResult Authenticate()
         {
+            //TODO: Refactor to AppSecurity for testability?
+
             var (Token, ErrMsg) = Request.BasicToken();
 
             if (!string.IsNullOrEmpty(ErrMsg))

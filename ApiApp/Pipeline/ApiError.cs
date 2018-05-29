@@ -1,8 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ApiApp.Pipeline
@@ -17,18 +20,59 @@ namespace ApiApp.Pipeline
 
         public ApiError() { }
 
+        public ApiError(string code, string message, ModelStateDictionary modelState)
+        {
+            try
+            {
+                Error = new ApiErrorInfo(code, message, modelState);
+            }
+            catch (Exception ex)
+            {
+                Error = new ApiErrorInfo
+                {
+                    Code = $"{ex.GetType().FullName}",
+
+                    Message = ex.Message
+                };
+            }
+        }
+
         public ApiError(Exception exception)
         {
-            Error = new ApiErrorInfo(exception);
+            try
+            {
+                Error = new ApiErrorInfo(exception);
+            }
+            catch (Exception ex)
+            {
+                Error = new ApiErrorInfo
+                {
+                    Code = $"{ex.GetType().FullName}",
+
+                    Message = ex.Message
+                };
+            }
         }
 
         public ApiError(string code, string message, Exception exception)
         {
-            Error = new ApiErrorInfo() { Code = code, Message = message };
-
-            if (exception != null)
+            try
             {
-                Error.InnerException = new ApiErrorInfo(exception);
+                Error = new ApiErrorInfo() { Code = code, Message = message };
+
+                if (exception != null)
+                {
+                    Error.InnerException = new ApiErrorInfo(exception);
+                }
+            }
+            catch (Exception ex)
+            {
+                Error = new ApiErrorInfo
+                {
+                    Code = $"{ex.GetType().FullName}",
+
+                    Message = ex.Message.Replace("\"", "'")
+                };
             }
         }
 
@@ -60,11 +104,40 @@ namespace ApiApp.Pipeline
 
             public ApiErrorInfo() { }
 
+            public ApiErrorInfo(string code, string message, ModelStateDictionary modelState)
+            {
+                Code = code;
+
+                Message = message;
+
+                Errors = modelState.Keys             
+                                   .Where(key => !string.IsNullOrWhiteSpace(key))
+                                   .SelectMany(key => modelState[key].Errors.Select(x => new ValidationError(key, x.ErrorMessage)))
+                                   .ToList();
+            }
+
             public ApiErrorInfo(Exception exception)
             {
                 Code = exception.GetType().FullName;
 
                 Message = exception.Message;
+
+                if (exception.Data.Count > 0)
+                {
+                    var sb = new StringBuilder();
+
+                    foreach (DictionaryEntry entry in exception.Data)
+                    {
+                        if (sb.Length > 0)
+                        {
+                            sb.Append(" | ");
+                        }
+
+                        sb.Append($"{entry.Key}: {entry.Value}");
+                    }
+
+                    InnerError = new InnerError(sb.ToString());
+                }
 
                 if (exception.InnerException != null)
                 {
@@ -92,6 +165,10 @@ namespace ApiApp.Pipeline
             [JsonProperty("innerException", NullValueHandling = NullValueHandling.Ignore)]
             public ApiErrorInfo InnerException { get; set; }
 
+            [DataMember(EmitDefaultValue = false)]
+            [JsonProperty("validationErrors", NullValueHandling = NullValueHandling.Ignore)]
+            public List<ValidationError> Errors { get; set; }
+
             #endregion
 
             #region Public Methods
@@ -109,6 +186,14 @@ namespace ApiApp.Pipeline
             #endregion
 
             #region Constructors
+
+            public InnerError() { }
+
+            public InnerError(string message)
+            {
+                Message = message;
+            }
+
             #endregion
 
             #region Properties

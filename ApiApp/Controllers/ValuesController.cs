@@ -11,12 +11,10 @@ using Microsoft.AspNetCore.Authorization;
 using ApiApp.Pipeline;
 using System.Net;
 using System.ComponentModel.DataAnnotations;
+using ApiApp.Models;
 
 namespace ApiApp.Controllers.V_1_0
 {
-    [Produces("application/json")]
-    [ApiVersion(CV.ApiVersions.V_1_0)] //CV.ApiVersions.V_1_0 + ".0"  //<== TODO: Handle the response for the use of this value
-    [Route("api/v{version:apiVersion}")]
     public class ValuesController : ControllerBase
     {
         #region Class Variables
@@ -27,8 +25,8 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Constructors
 
-        public ValuesController(IHttpContextAccessor contextAccessor)
-            : base(contextAccessor)
+        public ValuesController(IHttpContextAccessor contextAccessor, IValuesContext valuesContext)
+            : base(contextAccessor, valuesContext)
         {
             _hits += 1;
         }
@@ -43,14 +41,33 @@ namespace ApiApp.Controllers.V_1_0
         [HttpGet("[action]")]
         public IActionResult Ping()
         {
-            throw new ApplicationException("Ping Exception");
-
             return Ok($"{_hits} - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        }
+
+        [HttpGet("[action]")]
+        public IActionResult InternalServerTest()
+        {
+            var ex = new ApplicationException("Test Internal Server Exception");
+
+            ex.Data.Add("Some Data", "Extra Error Details");
+
+            ex.Data.Add("More Data", "Even More Extra Error Details");
+
+            throw ex;
         }
 
         [Authorize]
         [HttpGet("[action]")]
-        public IActionResult AuthTest()
+        public IActionResult AuthenticationTest()
+        {
+            var userIdClaim = SiteUser.Claims.FirstOrDefault();
+
+            return Ok($"{_hits} - {userIdClaim?.Type} - {userIdClaim?.Value} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        }
+
+        [Authorize(Roles = "SomeNonExistingRole")]
+        [HttpGet("[action]")]
+        public IActionResult AuthorizationTest()
         {
             var userIdClaim = SiteUser.Claims.FirstOrDefault();
 
@@ -73,6 +90,12 @@ namespace ApiApp.Controllers.V_1_0
             throw ex;
 
             throw new ValidationException("Validation Failed");
+        }
+
+        [HttpPost("[action]")]
+        public IActionResult PostValidationTest([FromBody] SampleModel model)
+        {
+            return Ok($"{_hits} - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - PostValidationTest - {DateTime.Now}");
         }
 
         [HttpGet("[action]")]

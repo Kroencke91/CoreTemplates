@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,6 @@ namespace ApiApp.Pipeline
 
             try
             {
-
                 var currentBody = response.Body;
 
                 using (var memoryStream = new MemoryStream())
@@ -38,10 +38,12 @@ namespace ApiApp.Pipeline
 
                     await _next(context);
 
-                    var apiVersionProperties = context.ApiVersionProperties();
+                    var apiVersion = context.ApiVersionProperties().RawApiVersion ?? "0.0";
 
-                    var apiVersion = apiVersionProperties.RawApiVersion;
+                    //ALT: var apiVersion = context.GetRequestedApiVersion() == null ? "0.0" : context.GetRequestedApiVersion().ToString();
 
+                    //TEST: throw new ApplicationException("Wrapper Test");
+                    
                     response.Body = currentBody;
 
                     memoryStream.Seek(0, SeekOrigin.Begin);
@@ -64,7 +66,7 @@ namespace ApiApp.Pipeline
                     }
 
                     string statusMessage = Enum.GetName(typeof(HttpStatusCode), statusCode); //TODO: Convert to Dictionary for performance?
-
+                    
                     if (statusCode > 399)
                     {
                         switch (statusCode)
@@ -92,9 +94,15 @@ namespace ApiApp.Pipeline
 
                                 break;
 
-                            case 422:
+                            case 422: //UnprocessableEntity
 
                                 statusMessage = "UnprocessableEntity";
+
+                                break;
+
+                            default:
+
+                                //TODO: Log unhandled HttpStatusCode for future enhancement
 
                                 break;
                         }
@@ -109,21 +117,38 @@ namespace ApiApp.Pipeline
             }
             catch (Exception ex)
             {
-                var apiError = new ApiError(ex);
+                //TODO: Add logging
 
-                var objResult = new ExceptionResult(apiError);
+                //TODO: Figure out how to handle!
 
-                var result = new ApiResponse(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString(), reqestUrl, null, objResult);
+                ////var exContext = new ExceptionContext(context, null);
 
-                response.ContentType = response.ContentType ?? "application/json; charset=utf-8";
+                ////((ExceptionContext)context).ExceptionHandled = true;
 
-                await response.WriteAsync(JsonConvert.SerializeObject(result));
+                //var apiError = new ApiError(ex);
+
+                //var objResult = new ExceptionResult(apiError);
+
+                //var result = new ApiResponse(HttpStatusCode.OK, HttpStatusCode.OK.ToString(), reqestUrl, null, objResult);
+
+                //response.ContentType = response.ContentType ?? "application/json; charset=utf-8";
+
+                //await response.WriteAsync(JsonConvert.SerializeObject(result));
+
+                //var apiError = new ApiError(ex);
+
+                //response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                //response.ContentType = response.ContentType ?? "application/json; charset=utf-8";
+
+                ////context.ExceptionHandled = true;
+
+                //await response.WriteAsync(JsonConvert.SerializeObject(apiError));
+
+                //response.StatusCode = (int)HttpStatusCode.OK;
+
+                //await response.WriteAsync("Hello World");
             }
-        }
-
-        private object Unauthorized(UnauthorizedError unauthorizedError)
-        {
-            throw new NotImplementedException();
         }
     }
 }
