@@ -45,6 +45,12 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Public Methods
 
+        [HttpGet("[action]")]
+        public IActionResult Error()
+        {
+            return Ok($"Error - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        }
+
         [HttpPost("[action]")]
         public IActionResult Authenticate()
         {

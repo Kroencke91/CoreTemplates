@@ -32,11 +32,20 @@ namespace ApiApp
 
         public static int Main(string[] args)
         {
-            var webHost = BuildWebHost(args);
+            try
+            {
+                var webHost = BuildWebHost(args);
 
-            webHost.Run();
+                webHost.Run();
 
-            return 0;
+                return 0;
+            }
+            catch(Exception ex)
+            {
+                //TODO: Handle Main exception
+
+                return -1;
+            }
         }
 
         #endregion

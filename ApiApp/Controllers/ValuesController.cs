@@ -10,6 +10,7 @@ using ApiApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using ApiApp.Pipeline;
 using System.Net;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApiApp.Controllers.V_1_0
 {
@@ -42,6 +43,8 @@ namespace ApiApp.Controllers.V_1_0
         [HttpGet("[action]")]
         public IActionResult Ping()
         {
+            throw new ApplicationException("Ping Exception");
+
             return Ok($"{_hits} - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
         }
 
@@ -52,6 +55,24 @@ namespace ApiApp.Controllers.V_1_0
             var userIdClaim = SiteUser.Claims.FirstOrDefault();
 
             return Ok($"{_hits} - {userIdClaim?.Type} - {userIdClaim?.Value} - {AppInfo.EnvironmentName} - {DateTime.Now}");
+        }
+
+        [HttpGet("[action]")]
+        public IActionResult ForbiddenTest()
+        {
+            return Forbid();
+        }
+
+        [HttpGet("[action]")]
+        public IActionResult ValidationTest()
+        {
+            var vr = new ValidationResult("Some Bad Value was passed");
+
+            var ex =  new ValidationException(vr, null, "");
+                       
+            throw ex;
+
+            throw new ValidationException("Validation Failed");
         }
 
         [HttpGet("[action]")]

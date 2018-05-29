@@ -62,7 +62,9 @@ namespace ApiApp
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services
+            try
+            {
+                services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                         {
@@ -77,41 +79,58 @@ namespace ApiApp
                         }
                 );
 
-            services.AddMemoryCache();
+                services.AddMemoryCache();
 
-            services.AddMvc();
+                services.AddMvc(config =>
+                            {
+                                config.Filters.Add(typeof(ApiExceptionFilter));
+                            });
 
-            services.AddApiVersioning();
+                services.AddApiVersioning();
 
-            services.AddSingleton<IAppInfo>(new AppInfo(_config, _env));
+                services.AddSingleton<IAppInfo>(new AppInfo(_config, _env));
+            }
+            catch (Exception ex)
+            {
+                //TODO: Handle ConfigureServices exception
+            }
         }
 
         public void Configure(IApplicationBuilder app, IMemoryCache memoryCache)
         {
-            _app = app;
-
-            _app.UseMiddleware<ApiResponseWrapper>();
-
-            if (_config.UseDeveloperExceptionPage)
+            try
             {
-                _app.UseDeveloperExceptionPage();
-            }
-            else
-            {
+                _app = app;
+
+                _app.UseMiddleware<ApiResponseWrapper>();
+
+                //_app.UseStatusCodePagesWithReExecute("/Error");
+
+                //if (_config.UseDeveloperExceptionPage)
+                //{
+                //    _app.UseDeveloperExceptionPage();
+                //}
+                //else
+                //{
                 _app.UseExceptionHandler();
+                //}
+
+                //_app.UseStatusCodePages();
+
+                _app.UseAuthentication();
+
+                _app.UseMvc();
+
+                _app.ApplicationServices.GetService<IAppInfo>().AddApp(_app);
+
+                ControllerBase.InitMemoryCache(memoryCache);
+
+                ControllerBase.InitAppInfo(_app.ApplicationServices.GetService<IAppInfo>());
             }
-
-            //_app.UseStatusCodePages();
-
-            _app.UseAuthentication();
-
-            _app.UseMvc();
-
-            _app.ApplicationServices.GetService<IAppInfo>().AddApp(_app);
-
-            ControllerBase.InitMemoryCache(memoryCache);
-
-            ControllerBase.InitAppInfo(_app.ApplicationServices.GetService<IAppInfo>());
+            catch (Exception ex)
+            {
+                //TODO: handle Configure exception
+            }
         }
 
         #endregion

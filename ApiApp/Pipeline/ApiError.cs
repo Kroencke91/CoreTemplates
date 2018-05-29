@@ -85,11 +85,11 @@ namespace ApiApp.Pipeline
             public string Message { get; set; }
 
             [DataMember(EmitDefaultValue = false)]
-            [JsonProperty("innerError")]
+            [JsonProperty("innerError", NullValueHandling = NullValueHandling.Ignore)]
             public InnerError InnerError { get; set; }
 
             [DataMember(EmitDefaultValue = false)]
-            [JsonProperty("innerException")]
+            [JsonProperty("innerException", NullValueHandling = NullValueHandling.Ignore)]
             public ApiErrorInfo InnerException { get; set; }
 
             #endregion

@@ -27,66 +27,103 @@ namespace ApiApp.Pipeline
 
             var response = context.Response;
 
-            var currentBody = response.Body;
-
-            using (var memoryStream = new MemoryStream())
+            try
             {
-                response.Body = memoryStream;
 
-                await _next(context);
+                var currentBody = response.Body;
 
-                var apiVersionProperties = context.ApiVersionProperties();
-
-                var apiVersion = apiVersionProperties.RawApiVersion;
-
-                response.Body = currentBody;
-
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                var readToEnd = new StreamReader(memoryStream).ReadToEnd();
-
-                var statusCode = response.StatusCode;
-
-                object objResult = null;
-
-                try
+                using (var memoryStream = new MemoryStream())
                 {
-                    objResult = statusCode < 400 ? JsonConvert.DeserializeObject(readToEnd) : JsonConvert.DeserializeObject<ApiError>(readToEnd);
-                }
-                catch (Exception ex)
-                {
-                    //TODO: Log Unknown Error Response Content
+                    response.Body = memoryStream;
 
-                    objResult = JsonConvert.DeserializeObject(readToEnd);
-                }
+                    await _next(context);
 
-                string statusMessage;
+                    var apiVersionProperties = context.ApiVersionProperties();
 
-                var sb = new StringBuilder();
+                    var apiVersion = apiVersionProperties.RawApiVersion;
 
-                sb.Append(Enum.GetName(typeof(HttpStatusCode), statusCode));
+                    response.Body = currentBody;
 
-                if (statusCode > 399)
-                {
-                    if (statusCode == 401)
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+
+                    var readToEnd = new StreamReader(memoryStream).ReadToEnd();
+
+                    var statusCode = response.StatusCode;
+
+                    object objResult = null;
+
+                    try
                     {
-                        var authErrors = response.Headers["WWW-Authenticate"];
+                        objResult = statusCode < 400 ? JsonConvert.DeserializeObject(readToEnd) : JsonConvert.DeserializeObject<ApiError>(readToEnd);
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO: Log Unknown Error Response Content
 
-                        foreach (var authErr in authErrors)
+                        objResult = JsonConvert.DeserializeObject(readToEnd);
+                    }
+
+                    string statusMessage = Enum.GetName(typeof(HttpStatusCode), statusCode); //TODO: Convert to Dictionary for performance?
+
+                    if (statusCode > 399)
+                    {
+                        switch (statusCode)
                         {
-                            sb.Append($" - {authErr.Replace("\"", "'")}");
+                            case 401: //Unauthorized
+
+                                var authErrors = response.Headers["WWW-Authenticate"];
+
+                                var errMsg = string.Empty;
+
+                                foreach (var authErr in authErrors)
+                                {
+                                    errMsg = authErr.Replace("\"", "'");
+
+                                    break;
+                                }
+
+                                objResult = new UnauthorizedError(errMsg);
+
+                                break;
+
+                            case 403: //Forbidden
+
+                                objResult = new ForbiddenError("Access Denied");
+
+                                break;
+
+                            case 422:
+
+                                statusMessage = "UnprocessableEntity";
+
+                                break;
                         }
                     }
+
+                    var result = new ApiResponse((HttpStatusCode)statusCode, statusMessage, reqestUrl, apiVersion, objResult);
+
+                    response.ContentType = response.ContentType ?? "application/json; charset=utf-8";
+
+                    await response.WriteAsync(JsonConvert.SerializeObject(result));
                 }
+            }
+            catch (Exception ex)
+            {
+                var apiError = new ApiError(ex);
 
-                statusMessage = sb.ToString();
+                var objResult = new ExceptionResult(apiError);
 
-                var result = new ApiResponse((HttpStatusCode)statusCode, statusMessage, reqestUrl, apiVersion, objResult);
+                var result = new ApiResponse(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString(), reqestUrl, null, objResult);
 
                 response.ContentType = response.ContentType ?? "application/json; charset=utf-8";
 
                 await response.WriteAsync(JsonConvert.SerializeObject(result));
             }
+        }
+
+        private object Unauthorized(UnauthorizedError unauthorizedError)
+        {
+            throw new NotImplementedException();
         }
     }
 }
