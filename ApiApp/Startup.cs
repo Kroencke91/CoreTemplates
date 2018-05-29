@@ -90,6 +90,8 @@ namespace ApiApp
         {
             _app = app;
 
+            _app.UseMiddleware<ApiResponseWrapper>();
+
             if (_config.UseDeveloperExceptionPage)
             {
                 _app.UseDeveloperExceptionPage();
@@ -100,8 +102,6 @@ namespace ApiApp
             }
 
             //_app.UseStatusCodePages();
-
-            _app.UseMiddleware<ApiResponseWrapper>();
 
             _app.UseAuthentication();
 

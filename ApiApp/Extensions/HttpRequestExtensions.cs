@@ -29,12 +29,12 @@ namespace ApiApp.Extensions
 
         public static (string Token, string ErrMsg) BasicToken(this HttpRequest request)
         {
-            return GetTokenValue(request.Headers); 
+            return GetTokenValue(request.Headers);
         }
 
         public static (string Token, string ErrMsg) BearerToken(this HttpRequest request)
         {
-            return GetTokenValue(request.Headers); 
+            return GetTokenValue(request.Headers);
         }
 
         #endregion
@@ -45,19 +45,28 @@ namespace ApiApp.Extensions
         {
             var token = string.Empty;
 
-            var authHeader = headers["Authorization"];
-
-            if (authHeader.Any())
+            try
             {
-                var parts = authHeader.First().Split(' ');
+                var authHeader = headers["Authorization"];
 
-                if (parts.Length == 2)
+                if (authHeader.Any())
                 {
-                    token = parts[1];
-                }
-            }
+                    var parts = authHeader.First().Split(' ');
 
-            return (token, string.IsNullOrWhiteSpace(token) ? AUTH_HEADER_PARSE_ERROR : "");
+                    if (parts.Length == 2)
+                    {
+                        token = parts[1];
+                    }
+                }
+
+                return (token, string.IsNullOrWhiteSpace(token) ? AUTH_HEADER_PARSE_ERROR : "");
+            }
+            catch (Exception ex)
+            {
+                //TODO: Logging?
+
+                return (token, ex.Message);
+            }
         }
 
         #endregion

@@ -64,6 +64,16 @@ namespace ApiApp.Controllers
             _appInfo = appInfo;
         }
 
+        public Pipeline.UnauthorizedResult Unauthorized(object error)
+        {
+            return new Pipeline.UnauthorizedResult(error);
+        }
+
+        public override UnauthorizedResult Unauthorized()
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region Protected Methods

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -11,29 +12,40 @@ namespace ApiApp.Pipeline
     public class ApiResponse
     {
         [DataMember]
-        public string Version { get { return "1.2.3"; } } //TODO: Pull from request URL
+        [JsonProperty("apiVersion")]
+        public string ApiVersion { get; }
 
         [DataMember]
-        public int StatusCode { get; set; }
+        [JsonProperty("statusCode")]
+        public HttpStatusCode StatusCode { get; }
+
+        [DataMember(EmitDefaultValue = false)]
+        [JsonProperty("statusMessage")]
+        public string StatusMessage { get; }
 
         [DataMember]
-        public string RequestUrl { get; set; }
+        [JsonProperty("requestUrl")]
+        public string RequestUrl { get; }
 
         [DataMember(EmitDefaultValue = false)]
-        public object Result { get; set; }
+        [JsonProperty("result")]
+        public object Result { get; }
 
-        [DataMember(EmitDefaultValue = false)]
-        public string ErrorMessage { get; set; }
-
-        public ApiResponse(HttpStatusCode statusCode, string requestUrl, object result = null, string errorMessage = null)
+        public ApiResponse(HttpStatusCode statusCode,
+                           string statusMessage,
+                           string requestUrl, 
+                           string apiVersion, 
+                           object result = null)
         {
-            StatusCode = (int)statusCode;
+            StatusCode = statusCode;
+
+            StatusMessage = statusMessage;
+
+            ApiVersion = apiVersion;
 
             RequestUrl = requestUrl;
 
             Result = result;
-
-            ErrorMessage = errorMessage;
         }
     }
 }
