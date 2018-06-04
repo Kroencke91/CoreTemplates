@@ -1,7 +1,9 @@
-﻿using ApiApp.Misc;
+﻿using ApiApp.Interfaces;
+using ApiApp.Misc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -13,6 +15,22 @@ namespace ApiApp.Pipeline
 {
     public class ApiExceptionFilter : IExceptionFilter
     {
+        #region Class Variables
+
+        private static IAppInfo _appInfo = Startup.AppInfo;
+
+        private static ILogger _log = _appInfo.Env.Log;
+
+        #endregion
+
+        #region Constructors
+        #endregion
+
+        #region Properties
+        #endregion
+
+        #region Public Methods
+
         public void OnException(ExceptionContext context)
         {
             var response = context.HttpContext.Response;
@@ -23,6 +41,7 @@ namespace ApiApp.Pipeline
             {
                 //TEST: throw new ApplicationException("Test ApiExceptionFilter Exception Handling");
 
+                //REFACTOR: Use ConcurrentDictionary instead
                 if (exceptionType == typeof(UnauthorizedAccessException))
                 {
                     response.StatusCode = (int)HttpStatusCode.Unauthorized;
@@ -52,6 +71,8 @@ namespace ApiApp.Pipeline
             }
             catch (Exception ex)
             {
+                _log.Error($"{ex}");
+
                 var apiError = new ApiError(ex);
 
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -63,5 +84,10 @@ namespace ApiApp.Pipeline
                 response.WriteAsync(JsonConvert.SerializeObject(apiError));
             }
         }
+
+        #endregion
+
+        #region Private Methods
+        #endregion
     }
 }

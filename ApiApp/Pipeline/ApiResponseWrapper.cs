@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ApiApp.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,12 +17,29 @@ namespace ApiApp.Pipeline
 {
     public class ApiResponseWrapper
     {
+        #region Class Variables
+
+        private static IAppInfo _appInfo = Startup.AppInfo;
+
+        private static ILogger _log = _appInfo.Env.Log;
+
         private readonly RequestDelegate _next;
+
+        #endregion
+
+        #region Constructors
 
         public ApiResponseWrapper(RequestDelegate next)
         {
             _next = next;
         }
+
+        #endregion
+
+        #region Properties
+        #endregion
+
+        #region Public Methods
 
         public async Task Invoke(HttpContext context)
         {
@@ -61,6 +80,7 @@ namespace ApiApp.Pipeline
                     catch (Exception ex)
                     {
                         //TODO: Log Unknown Error Response Content
+                        _log.Error($"{ex}");
 
                         objResult = JsonConvert.DeserializeObject(readToEnd);
                     }
@@ -117,7 +137,7 @@ namespace ApiApp.Pipeline
             }
             catch (Exception ex)
             {
-                //TODO: Add logging
+                _log.Error($"{ex}");
 
                 //TODO: Figure out how to handle!
 
@@ -150,5 +170,10 @@ namespace ApiApp.Pipeline
                 //await response.WriteAsync("Hello World");
             }
         }
+
+        #endregion
+
+        #region Private Methods
+        #endregion
     }
 }

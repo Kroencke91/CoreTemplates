@@ -20,7 +20,8 @@ using ApiApp.Pipeline;
 namespace ApiApp.Controllers.V_1_0
 {
     //[ApiVersionNeutral]
-    public sealed class AuthController : ControllerBase
+    [ApiVersion(CV.ApiVersions.V_1_0)]
+    public sealed class AuthController : ApiControllerBase
     {
         #region Class Variables
 
@@ -30,8 +31,8 @@ namespace ApiApp.Controllers.V_1_0
 
         #region Constructors
 
-        public AuthController(IHttpContextAccessor contextAccessor, IValuesContext valuesContext)
-            : base(contextAccessor, valuesContext)
+        public AuthController(IHttpContextAccessor contextAccessor, IValueRepository valueRepository)
+            : base(contextAccessor, valueRepository)
         {
             _security = AppInfo.AppSecurity;
         }

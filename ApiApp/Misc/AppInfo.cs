@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 
 using ApiApp.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiApp.Misc
 {
@@ -42,6 +43,8 @@ namespace ApiApp.Misc
 
         public IAppSecurity AppSecurity => Config.AppSecurity;
 
+        public IMemoryCache MemoryCache { get; private set; }
+
         public string EnvironmentName => Env.EnvironmentName;
 
         public string ApplicationName => Env.ApplicationName;
@@ -55,6 +58,13 @@ namespace ApiApp.Misc
         public IAppInfo AddApp(IApplicationBuilder app)
         {
             App = app;
+
+            return this;
+        }
+
+        public IAppInfo AddMemoryCache(IMemoryCache memoryCache)
+        {
+            MemoryCache = memoryCache;
 
             return this;
         }

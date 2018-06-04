@@ -1,32 +1,27 @@
 ﻿using ApiApp.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using ApiApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ApiApp.DataAccess
+namespace ApiApp.Repositories
 {
-    public class ValuesContext : DbContext, IValuesContext
+    public class ValueRepository : IValueRepository
     {
         #region Class Variables
         #endregion
 
         #region Constructors
-
-        public ValuesContext(DbContextOptions<ValuesContext> options) : base(options)
-        {
-        }
-
         #endregion
 
         #region Properties
+
+       public IQueryable<BVSafeSite> BVSafeSites { get; }
+
         #endregion
 
         #region Public Methods
-
-        public IEnumerable<int> List { get; set; }
-
         #endregion
 
         #region Private Methods

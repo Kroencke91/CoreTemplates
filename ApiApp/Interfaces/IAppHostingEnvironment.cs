@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Serilog;
 
 namespace ApiApp.Interfaces
 {
@@ -24,6 +25,8 @@ namespace ApiApp.Interfaces
         string ContentRootPath { get; }
 
         IFileProvider ContentRootFileProvider { get; }
+
+        ILogger Log { get; }
 
         #endregion
 

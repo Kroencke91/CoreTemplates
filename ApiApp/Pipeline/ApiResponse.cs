@@ -11,6 +11,35 @@ namespace ApiApp.Pipeline
     [DataContract]
     public class ApiResponse
     {
+        #region Class Variables
+        #endregion
+
+        #region Constructors
+
+        public ApiResponse(HttpStatusCode statusCode,
+                           string statusMessage,
+                           string requestUrl, 
+                           string apiVersion, 
+                           object result = null)
+        {
+            StatusCode = statusCode;
+
+            StatusMessage = statusMessage;
+
+            ApiVersion = apiVersion;
+
+            RequestUrl = requestUrl;
+
+            Result = result;
+        }
+
+        #endregion
+
+        #region Properties
+        #endregion
+
+        #region Public Methods
+
         [DataMember]
         [JsonProperty("apiVersion")]
         public string ApiVersion { get; }
@@ -31,21 +60,9 @@ namespace ApiApp.Pipeline
         [JsonProperty("result")]
         public object Result { get; }
 
-        public ApiResponse(HttpStatusCode statusCode,
-                           string statusMessage,
-                           string requestUrl, 
-                           string apiVersion, 
-                           object result = null)
-        {
-            StatusCode = statusCode;
+        #endregion
 
-            StatusMessage = statusMessage;
-
-            ApiVersion = apiVersion;
-
-            RequestUrl = requestUrl;
-
-            Result = result;
-        }
+        #region Private Methods
+        #endregion
     }
 }

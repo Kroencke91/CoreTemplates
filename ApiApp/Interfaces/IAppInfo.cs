@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiApp.Interfaces
 {
@@ -19,6 +20,8 @@ namespace ApiApp.Interfaces
 
         IAppSecurity AppSecurity { get; }
 
+        IMemoryCache MemoryCache { get; }
+
         string EnvironmentName { get; }
 
         string ApplicationName { get; }
@@ -30,6 +33,8 @@ namespace ApiApp.Interfaces
         #region Public Methods
 
         IAppInfo AddApp(IApplicationBuilder app);
+
+        IAppInfo AddMemoryCache(IMemoryCache memoryCache);
 
         #endregion
     }

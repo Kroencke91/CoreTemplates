@@ -1,8 +1,11 @@
-﻿using System;
+﻿using ApiApp.Validation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Newtonsoft.Json;
 
 namespace ApiApp.Models
 {
@@ -26,7 +29,11 @@ namespace ApiApp.Models
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            yield return new ValidationResult($"Id must be an integer", new[] { "Id" });            
+            var err = new AppValidationResult(validationContext, $"Id must be an integer", new[] { "Id" });
+                        
+            var errMsgJson = JsonConvert.SerializeObject(err);
+
+            yield return new ValidationResult(errMsgJson, new[] { "Id" });            
         }
 
         #endregion

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 using ApiApp.Interfaces;
 using ApiApp.Misc;
@@ -17,29 +18,24 @@ namespace ApiApp.Controllers
 {
     [Produces("application/json")]
     [Route("api/v{version:apiVersion}")]
-    //[ValidateAntiForgeryToken]
     [ValidateModel]
-    public abstract class ControllerBase : Controller
+    public abstract class ApiControllerBase : Controller
     {
         #region Class Variables
-
-        private static IAppInfo _appInfo;
-
-        private static IMemoryCache _memoryCache;
         
-        private readonly string _requestedApiVersion;
+        private static IAppInfo _appInfo;
 
         #endregion
 
         #region Constructors
 
-        protected ControllerBase(IHttpContextAccessor contextAccessor, IValuesContext valuesContext)
+        protected ApiControllerBase(IHttpContextAccessor contextAccessor, IValueRepository valueRepository)
         {
             ContextAccessor = contextAccessor;
 
-            ValuesContext = valuesContext;
+            ValueRepository = valueRepository;
 
-            _requestedApiVersion = ContextAccessor.HttpContext.GetRequestedApiVersion().ToString();
+            RequestedApiVersion = ContextAccessor.HttpContext.GetRequestedApiVersion().ToString();
 
             SiteUser = new SiteUser(ContextAccessor.HttpContext.User);
         }
@@ -48,28 +44,30 @@ namespace ApiApp.Controllers
 
         #region Properties
 
+        protected ILogger Log => _appInfo.Env.Log;
+
         protected IHttpContextAccessor ContextAccessor { get; private set; }
 
-        protected IValuesContext ValuesContext { get; private set; }
-
-        protected string RequestedApiVersion => _requestedApiVersion;
+        protected IValueRepository ValueRepository { get; private set; }
 
         protected IAppInfo AppInfo => _appInfo;
 
         protected ISiteUser SiteUser { get; private set; }
 
-        protected IMemoryCache MemoryCache => _memoryCache;
+        protected IMemoryCache MemoryCache => _appInfo.MemoryCache;
+
+        protected string RequestedApiVersion { get; }
 
         #endregion
 
         #region Public Methods
 
-        internal static void InitMemoryCache(IMemoryCache memoryCache)
-        {
-            if (_memoryCache != null) throw new ApplicationException("MemoryCache already intialized!");
+        //internal static void InitMemoryCache(IMemoryCache memoryCache)
+        //{
+        //    if (_memoryCache != null) throw new ApplicationException("MemoryCache already intialized!");
 
-            _memoryCache = memoryCache;
-        }
+        //    _memoryCache = memoryCache;
+        //}
 
         internal static void InitAppInfo(IAppInfo appInfo)
         {

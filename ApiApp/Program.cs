@@ -9,11 +9,12 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 using ApiApp.Controllers;
 using ApiApp.Interfaces;
 using ApiApp.Misc;
+using Serilog;
+using Serilog.Events;
 
 namespace ApiApp
 {
@@ -32,19 +33,39 @@ namespace ApiApp
 
         public static int Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json")
+               .Build();
+
+            Log.Logger = new LoggerConfiguration()
+                            .MinimumLevel.Debug()
+                            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                            .Enrich.FromLogContext()
+                            .WriteTo.Console(LogEventLevel.Debug)
+                            .WriteTo.RollingFile(Path.Combine(Directory.GetCurrentDirectory(), @"Logs\log-{Date}.txt"))
+                            .CreateLogger();
+
             try
             {
+                Log.Information($"ApiApp - Starting - {DateTime.Now}");
+
                 var webHost = BuildWebHost(args);
 
                 webHost.Run();
 
                 return 0;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Handle Main exception
 
+                Log.Error($"{ex}");
+
                 return -1;
+            }
+            finally
+            {
+                Log.Information($"ApiApp - Stopping - {DateTime.Now}");
             }
         }
 

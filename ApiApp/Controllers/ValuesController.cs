@@ -12,23 +12,29 @@ using ApiApp.Pipeline;
 using System.Net;
 using System.ComponentModel.DataAnnotations;
 using ApiApp.Models;
+using Serilog;
 
 namespace ApiApp.Controllers.V_1_0
 {
-    public class ValuesController : ControllerBase
+    [ApiVersion(CV.ApiVersions.V_1_0)]
+    public class ValuesController : ApiControllerBase
     {
         #region Class Variables
 
         private static int _hits; //Just for fun...NOT thread-safe!!
 
+        private IBVSafeSiteRepository _bvSafeSiteRepository;
+
         #endregion
 
         #region Constructors
 
-        public ValuesController(IHttpContextAccessor contextAccessor, IValuesContext valuesContext)
-            : base(contextAccessor, valuesContext)
+        public ValuesController(IHttpContextAccessor contextAccessor, IValueRepository valueRepository, IBVSafeSiteRepository bvSafeSiteRepository)
+            : base(contextAccessor, valueRepository)
         {
             _hits += 1;
+
+            _bvSafeSiteRepository = bvSafeSiteRepository;
         }
 
         #endregion
@@ -43,6 +49,212 @@ namespace ApiApp.Controllers.V_1_0
         {
             return Ok($"{_hits} - {AppInfo.ApplicationName} - {AppInfo.EnvironmentName} - {DateTime.Now}");
         }
+        
+        [HttpGet("[action]")]
+        public IActionResult BVSafeSites()
+        {
+            var sitesInfo = new SitesInfo();
+
+            try
+            {
+                //throw new ApplicationException("TEST BVSafeSites ERROR HANDLING");
+
+                var sites = _bvSafeSiteRepository.BVSafeSites.Take(6);
+
+                var currSiteLat = "";
+
+                var currSiteLong = "";
+
+                var curSite = new Site();
+
+                var siteCount = 0;
+
+                var projectCount = 0;
+
+                foreach (var site in sites)
+                {
+                    if (!(site.Latitude == currSiteLat && site.Longitude == currSiteLong))
+                    {
+                        siteCount += 1;
+
+                        projectCount = 0;
+
+                        try
+                        {
+                            if (siteCount == 2) throw new ApplicationException("TEST BVSafeSites: Add Site ERROR HANDLING");
+
+                            curSite = new Site()
+                            {
+                                SiteIndex = siteCount,
+                                Latitude = site.Latitude,
+                                Longitude = site.Longitude,
+                                Active = site.Active,
+                                SiteName = site.SiteName,
+                            };
+
+                            sitesInfo.Sites.Add(curSite);
+                        }
+                        catch (Exception ex)
+                        {
+                            //TODO: Add Logging
+
+                            var error = new Error();
+
+                            error.Message = $"Add Site {siteCount}: {ex.Message}";
+
+                            sitesInfo.Errors.Add(error);
+
+                            curSite = new Site();
+
+                            continue;
+                        }
+                    }
+
+                    projectCount += 1;
+
+                    try
+                    {
+                        if (siteCount == 4) throw new ApplicationException("TEST BVSafeSites: Add Project ERROR HANDLING");
+
+                        var proj = new Project()
+                        {
+                            ProjectId = site.ProjectId,
+                            ProjectName = site.ProjectName,
+                            Active = site.Active,
+                        };
+
+                        curSite.Projects.Add(proj);
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO: Add Logging
+
+                        var error = new Error();
+
+                        error.Message = $"Add Site {siteCount} Project {projectCount}: {ex.Message}";
+
+                        sitesInfo.Errors.Add(error);
+                    }
+                }
+
+                sitesInfo.SiteCount = siteCount;
+            }
+            catch (Exception ex)
+            {
+                //TODO: Add Logging
+
+                var error = new Error();
+
+                error.Message = $"{ex.Message}";
+
+                sitesInfo.Errors.Add(error);
+            }
+
+            return Ok(sitesInfo);
+        }
+
+        //[HttpPost("[action]")]
+        //public IActionResult BVSafeSites()
+        //{
+        //    var sitesInfo = new SitesInfo();
+
+        //    try
+        //    {
+        //        //throw new ApplicationException("TEST BVSafeSites ERROR HANDLING");
+
+        //        var sites = _bvSafeSiteRepository.BVSafeSites.Take(6);
+
+        //        var currSiteLat = "";
+
+        //        var currSiteLong = "";
+
+        //        var curSite = new Site();
+
+        //        var siteCount = 0;
+
+        //        var projectCount = 0;
+
+        //        foreach (var site in sites)
+        //        {
+        //            if (!(site.Latitude == currSiteLat && site.Longitude == currSiteLong))
+        //            {
+        //                siteCount += 1;
+
+        //                projectCount = 0;
+
+        //                try
+        //                {
+        //                    if (siteCount == 2) throw new ApplicationException("TEST BVSafeSites: Add Site ERROR HANDLING");
+
+        //                    curSite = new Site()
+        //                    {
+        //                        SiteIndex = siteCount,
+        //                        Latitude = site.Latitude,
+        //                        Longitude = site.Longitude,
+        //                        Active = site.Active,
+        //                        SiteName = site.SiteName,
+        //                    };
+
+        //                    sitesInfo.Sites.Add(curSite);
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    //TODO: Add Logging
+
+        //                    var error = new Error();
+
+        //                    error.Message = $"Add Site {siteCount}: {ex.Message}";
+
+        //                    sitesInfo.Errors.Add(error);
+
+        //                    curSite = new Site();
+
+        //                    continue;
+        //                }
+        //            }
+
+        //            projectCount += 1;
+
+        //            try
+        //            {
+        //                if (siteCount == 4) throw new ApplicationException("TEST BVSafeSites: Add Project ERROR HANDLING");
+
+        //                var proj = new Project()
+        //                {
+        //                    ProjectId = site.ProjectId,
+        //                    ProjectName = site.ProjectName,
+        //                    Active = site.Active,
+        //                };
+
+        //                curSite.Projects.Add(proj);
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                //TODO: Add Logging
+
+        //                var error = new Error();
+
+        //                error.Message = $"Add Site {siteCount} Project {projectCount}: {ex.Message}";
+
+        //                sitesInfo.Errors.Add(error);
+        //            }
+        //        }
+
+        //        sitesInfo.SiteCount = siteCount;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        //TODO: Add Logging
+
+        //        var error = new Error();
+
+        //        error.Message = $"{ex.Message}";
+
+        //        sitesInfo.Errors.Add(error);
+        //    }
+
+        //    return Ok(sitesInfo);
+        //}
 
         [HttpGet("[action]")]
         public IActionResult InternalServerTest()
@@ -65,7 +277,7 @@ namespace ApiApp.Controllers.V_1_0
             return Ok($"{_hits} - {userIdClaim?.Type} - {userIdClaim?.Value} - {AppInfo.EnvironmentName} - {DateTime.Now}");
         }
 
-        [Authorize(Roles = "SomeNonExistingRole")]
+        [Authorize()]
         [HttpGet("[action]")]
         public IActionResult AuthorizationTest()
         {
@@ -77,6 +289,8 @@ namespace ApiApp.Controllers.V_1_0
         [HttpGet("[action]")]
         public IActionResult ForbiddenTest()
         {
+            Log.Debug($"Forbidden - {DateTime.Now}");
+
             return Forbid();
         }
 
@@ -85,8 +299,8 @@ namespace ApiApp.Controllers.V_1_0
         {
             var vr = new ValidationResult("Some Bad Value was passed");
 
-            var ex =  new ValidationException(vr, null, "");
-                       
+            var ex = new ValidationException(vr, null, "");
+
             throw ex;
 
             throw new ValidationException("Validation Failed");

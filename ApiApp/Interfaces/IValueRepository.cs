@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ApiApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace ApiApp.Interfaces
 {
-    public interface IValuesContext
+    public interface IValueRepository
     {
         #region Properties
+
+        IQueryable<BVSafeSite> BVSafeSites { get; }
+
         #endregion
 
         #region Public Methods
-
-        IEnumerable<int> List { get; set; }
-
         #endregion
     }
 }

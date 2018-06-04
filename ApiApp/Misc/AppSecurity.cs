@@ -54,6 +54,9 @@ namespace ApiApp.Misc
 
         public ClaimsIdentity GetClaimsIdentityFromTokenAsync(IMemoryCache memoryCache, string token)
         {
+            //TODO: Get ApiKey from IdentityProvider
+            if (!token.Equals("2bb7627f-4cfe-46a9-a5d0-c03874cfd396-69d317eb-e5ca-40cc-8208-0a956939998e")) return null;
+
             if (!memoryCache.TryGetValue(token, out ClaimsIdentity identity))
             {
                 identity = new ClaimsIdentity();
@@ -103,7 +106,7 @@ namespace ApiApp.Misc
             var key = string.Empty;
 
             //TODO: Get key from database or elsewhere
-            key = "e8cc0845-99dc-4ff1-8030-52d33b6d7a26-61d66ec2-eb48-4b86-8a9c-3c913cfbdf94"; //TODO: Replace!!!!
+            key = "34543a8eb90145568e084164b1b25c1b493e2e64d4304795b86e897181bce902"; //TODO: Replace!!!!
 
             return key;
         }

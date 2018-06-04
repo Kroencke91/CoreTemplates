@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 using ApiApp.Extensions;
 using ApiApp.Interfaces;
@@ -24,6 +25,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using ApiApp.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using ApiApp.Repositories;
 
 namespace ApiApp
 {
@@ -41,7 +43,8 @@ namespace ApiApp
 
         #region Constructors
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IHostingEnvironment env,
+                       ILoggerFactory loggerFactory)
         {
             var builder = new ConfigurationBuilder()
                                     .SetBasePath(env.ContentRootPath)
@@ -61,6 +64,9 @@ namespace ApiApp
         #endregion
 
         #region Properties
+
+        public static IAppInfo AppInfo { get; private set; }
+
         #endregion
 
         #region Public Methods
@@ -87,9 +93,13 @@ namespace ApiApp
                 services.AddMemoryCache();
 
                 //TODO: connection
-                var connection = @"Server=HPENVYLT2017\MSSQLSERVER2017;Database=Sandbox;Trusted_Connection=True;";
+                var connection = @"Data Source=HPENVYLT2017\MSSQLSERVER2017;Initial Catalog=BVSAFE;Integrated Security=True";
 
-                services.AddDbContext<ValuesContext>(options => options.UseSqlServer(connection));
+                services.AddDbContext<ValuesContext>(options => options.UseSqlServer(connection))
+                        .AddTransient<IValueRepository, ValueRepository>();
+
+                services.AddDbContext<BVContext>(options => options.UseSqlServer(connection))
+                        .AddTransient<IBVSafeSiteRepository, BVSafeSiteRepository>();
 
                 services.AddMvc(config =>
                             {
@@ -112,7 +122,9 @@ namespace ApiApp
                             }
                 );
 
-                services.AddSingleton<IAppInfo>(new AppInfo(_config, _env));
+                AppInfo = new AppInfo(_config, _env);
+
+                services.AddSingleton(AppInfo);
             }
             catch (Exception ex)
             {
@@ -127,7 +139,7 @@ namespace ApiApp
             {
                 _app = app;
 
-                _app.UseMiddleware<ApiResponseWrapper>();
+                _app.UseResponseWrapper();
 
                 //_app.UseStatusCodePagesWithReExecute("/Error");
 
@@ -146,11 +158,11 @@ namespace ApiApp
 
                 _app.UseMvc();
 
-                _app.ApplicationServices.GetService<IAppInfo>().AddApp(_app);
+                AppInfo.AddApp(_app);
 
-                Controllers.ControllerBase.InitMemoryCache(memoryCache);
+                AppInfo.AddMemoryCache(memoryCache);
 
-                Controllers.ControllerBase.InitAppInfo(_app.ApplicationServices.GetService<IAppInfo>());
+                ApiControllerBase.InitAppInfo(AppInfo);
             }
             catch (Exception ex)
             {

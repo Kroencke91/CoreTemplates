@@ -112,7 +112,7 @@ namespace ApiApp.Pipeline
 
                 Errors = modelState.Keys             
                                    .Where(key => !string.IsNullOrWhiteSpace(key))
-                                   .SelectMany(key => modelState[key].Errors.Select(x => new ValidationError(key, x.ErrorMessage)))
+                                   .SelectMany(key => modelState[key].Errors.Select(x => new ValidationError( key, x.ErrorMessage)))
                                    .ToList();
             }
 

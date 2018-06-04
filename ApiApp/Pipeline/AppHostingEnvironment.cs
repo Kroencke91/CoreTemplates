@@ -7,12 +7,16 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 
 using ApiApp.Interfaces;
+using Serilog;
 
 namespace ApiApp.Pipeline
 {
     public class AppHostingEnvironment : IAppHostingEnvironment
     {
         #region Class Variables
+
+        private static ILogger _log = (ILogger) Serilog.Log.Logger;
+
         #endregion
 
         #region Constructors
@@ -67,6 +71,8 @@ namespace ApiApp.Pipeline
         public IFileProvider ContentRootFileProvider { get; private set; }
 
         #endregion
+
+        public ILogger Log => _log;
 
         #endregion
 

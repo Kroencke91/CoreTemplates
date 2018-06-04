@@ -1,0 +1,4 @@
+2018-06-03 21:39:24.502 -05:00 [Information] Hello, world!
+2018-06-03 21:39:55.157 -05:00 [Information] Hello, world!
+2018-06-03 21:45:38.734 -05:00 [Information] Hello, world!
+2018-06-03 21:45:52.593 -05:00 [Debug] Forbidden - 6/3/2018 9:45:52 PM
